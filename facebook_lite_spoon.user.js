@@ -1,13 +1,16 @@
 // ==UserScript==
 // @name          Facebook Lite Spoon
-// @namespace     http://xintron.se
+// @namespace     http://userscripts.org/scripts/show/57854
 // @description	  Removes the right-hand bar from Facebook Lite, expanding the content to 60% width. Removes Facebook | from the title and makes the header fixed at the top.
 // @include       http://lite.facebook.com/*
 // @author		  Marcus Carlsson
-// @version		  0.1
+// @version		  0.1.1
 // ==/UserScript==
 
-GM_addStyle(".splitViewRight {display:none;} #navigation, #content, #footer {width: 60%;}");
+//
+// Fixes the width of the page and removes the right-hand bar, also set comments to 100% width
+//
+addStyle(".splitViewRight {display:none;} #navigation, #content, #footer {width: 60%;} .feedbackView { width: 100%; }");
 
 //
 // Top Bar Positioning

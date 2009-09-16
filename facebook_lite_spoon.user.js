@@ -4,8 +4,10 @@
 // @description	  Removes the right-hand bar from Facebook Lite, expanding the content to 60% width. Removes Facebook | from the title and makes the header fixed at the top.
 // @include       http://lite.facebook.com/*
 // @author		  Marcus Carlsson
-// @version		  0.1.1
+// @version		  0.1.5
 // ==/UserScript==
+
+(function () {
 
 //
 // Fixes the width of the page and removes the right-hand bar, also set comments to 100% width
@@ -18,6 +20,19 @@ addStyle(".splitViewRight {display:none;} #navigation, #content, #footer {width:
 var contentPosition = getPosition($('content'));
 addStyle(' #header { position:fixed !important; width:100% !important; z-index:12; margin-top:0; } '+
 '#content { padding-top:' + contentPosition[1] + 'px; }');
+
+//
+// Fix the problem if the meny gets to small, change from 60% to 100%
+//
+function checkSize() {
+	var navigation = $('navigation');
+	if (navigation.offsetWidth < 750) 
+		navigation.style.width = '100%';
+	if (navigation.offsetWidth > 1300 && navigation.style.width != '60%')
+		navigation.style.width = '60%';
+}
+window.addEventListener('resize', checkSize, false);
+checkSize();
 
 //
 // Remove Facebook from the title
@@ -57,3 +72,5 @@ function getPosition(elm) {
 	}
 	return Array(x,y);
 }
+
+}) ();

@@ -5,7 +5,7 @@
 // @include       http://lite.facebook.com/*
 // @include       https://lite.facebook.com/*
 // @author		  Marcus Carlsson
-// @version		  0.2.6
+// @version		  0.3
 // ==/UserScript==
 
 (function () {
@@ -65,10 +65,33 @@ function hideHover() {
 // Add mouse-events
 //
 function mouseEvents() {
-	var profilephoto = $$('profilePhoto');
-	for (i in profilephoto) {
-		profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
-		profilephoto[i].childNodes[0].addEventListener('mouseout', hideHover, false);
+	if (document.getElementsByTagName('body')[0].getAttribute('class').match('home')) {
+		var profilephoto = $$('profilePhoto');
+		for (i in profilephoto) {
+			profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
+			profilephoto[i].childNodes[0].addEventListener('mouseout', hideHover, false);
+		}
+		// Add for attachments
+		var attachments = $$('attachmentMedia');
+		for (i in attachments) {
+			var nodes = attachments[i].childNodes;
+			for (n in nodes) {
+				nodes[n].childNodes[0].addEventListener('mouseover', showHover, false);
+				nodes[n].childNodes[0].addEventListener('mouseout', hideHover, false);
+			}
+		}			
+	}
+
+	// Add for photogallery
+	if (document.getElementsByTagName('body')[0].getAttribute('class').match('photoList')) {
+		var galleryimg = document.getElementsByTagName('td');
+		for (i in galleryimg) {
+			var nodes = galleryimg[i].childNodes;
+			for (n in nodes) {
+				nodes[n].childNodes[0].addEventListener('mouseover', showHover, false);
+				nodes[n].childNodes[0].addEventListener('mouseout', hideHover, false);
+			}
+		}
 	}
 }
 mouseEvents();

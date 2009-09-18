@@ -3,8 +3,9 @@
 // @namespace     http://userscripts.org/scripts/show/57854
 // @description	  Removes the right-hand bar from Facebook Lite, expanding the content to 60% width. Removes Facebook | from the title and makes the header fixed at the top. Thumbnail previewer.
 // @include       http://lite.facebook.com/*
+// @include       https://lite.facebook.com/*
 // @author		  Marcus Carlsson
-// @version		  0.2
+// @version		  0.2.6
 // ==/UserScript==
 
 (function () {
@@ -12,7 +13,7 @@
 //
 // Fixes the width of the page and removes the right-hand bar, also set comments to 100% width
 //
-addStyle(".splitViewRight {display:none;} #navigation, #content, #footer {width: 60%; min-width: 900px;} .feedbackView { width: 100%; }");
+addStyle("#navigation, #content, #footer {width: 60%; min-width: 900px;} .feedbackView { width: 100%; }");
 
 //
 // Top Bar Positioning
@@ -20,6 +21,24 @@ addStyle(".splitViewRight {display:none;} #navigation, #content, #footer {width:
 var contentPosition = getPosition($('content'));
 addStyle(' #header { position:fixed !important; width:100% !important; z-index:12; margin-top:0; } '+
 '#content { padding-top:' + contentPosition[1] + 'px; }');
+
+
+//
+// Check if we're on the main page, then hide the ads
+//
+if ($$('muffin', $$('splitViewRightInner')[0])[0]) {
+	addStyle(".splitViewRight {display: none;}");
+}
+
+//
+// Viewing photos, set the comments to 100% width and check for browser-resize
+//
+function photoComments() {
+	var size = ($('contentWrapper').offsetWidth - $$('splitViewContent')[0].offsetWidth - 80);
+	addStyle(".phideoView .splitViewRight {width: "+size+"px;} .phideoView .feedbackView {width: 100%;}");
+}
+photoComments();
+window.addEventListener('resize', photoComments, false);
 
 //
 // Creates a box where the original image is shown when hovering profile thumbnails
@@ -42,11 +61,19 @@ function hideHover() {
 	$('FLSpopup').style.display = '';
 }
 
-var profilephoto = $$('profilePhoto');
-for (i in profilephoto) {
-	profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
-	profilephoto[i].childNodes[0].addEventListener('mouseout', hideHover, false);
+//
+// Add mouse-events
+//
+function mouseEvents() {
+	var profilephoto = $$('profilePhoto');
+	for (i in profilephoto) {
+		profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
+		profilephoto[i].childNodes[0].addEventListener('mouseout', hideHover, false);
+	}
 }
+mouseEvents();
+// Reload mouse events if the content change
+$('contentWrapper').addEventListener('DOMNodeInserted', mouseEvents, false);
 
 //
 // Remove Facebook from the title

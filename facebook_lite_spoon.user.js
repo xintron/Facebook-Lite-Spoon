@@ -5,7 +5,7 @@
 // @include       http://lite.facebook.com/*
 // @include       https://lite.facebook.com/*
 // @author		  Marcus Carlsson
-// @version		  0.3
+// @version		  0.3.4
 // ==/UserScript==
 
 (function () {

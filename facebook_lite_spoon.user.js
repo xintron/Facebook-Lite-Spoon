@@ -26,16 +26,16 @@ addStyle(' #header { position:fixed !important; width:100% !important; z-index:1
 //
 // Check if we're on the main page, then hide the ads
 //
-if ($$('muffin', $$('splitViewRightInner')[0])[0]) {
-	addStyle(".splitViewRight {display: none;}");
+if ($$('LMuffinView', $$('LSplitView_RightInner')[0])[0]) {
+	addStyle(".LSplitView_Right {display: none;}");
 }
 
 //
 // Viewing photos, set the comments to 100% width and check for browser-resize
 //
 function photoComments() {
-	var size = ($('contentWrapper').offsetWidth - $$('splitViewContent')[0].offsetWidth - 80);
-	addStyle(".phideoView .splitViewRight {width: "+size+"px;} .phideoView .feedbackView {width: 100%;}");
+	var size = ($('contentWrapper').offsetWidth - $$('LSplitView_Content')[0].offsetWidth - 80);
+	addStyle(".LPhideoView .LSplitView_Right {width: "+size+"px;} .LPhideoView .UFIView, .UFIView {width: 100%;}") ;
 }
 photoComments();
 window.addEventListener('resize', photoComments, false);
@@ -65,7 +65,7 @@ function hideHover() {
 // Add mouse-events
 //
 function mouseEvents() {
-	if (document.getElementsByTagName('body')[0].getAttribute('class').match('home')) {
+	if (document.getElementsByTagName('body')[0].getAttribute('class').match('LHomeStreamView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfileView')) {
 		var profilephoto = $$('profilePhoto');
 		for (i in profilephoto) {
 			profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
@@ -83,7 +83,7 @@ function mouseEvents() {
 	}
 
 	// Add for photogallery
-	if (document.getElementsByTagName('body')[0].getAttribute('class').match('photoList')) {
+	if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane')) {
 		var galleryimg = document.getElementsByTagName('td');
 		for (i in galleryimg) {
 			var nodes = galleryimg[i].childNodes;

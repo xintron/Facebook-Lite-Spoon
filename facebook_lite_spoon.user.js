@@ -42,24 +42,23 @@ if ($$('LMuffinView', $$('LSplitPage_RightInner')[0])[0]) {
 	addStyle(".LSplitPage_Right {display: none;}");
 }
 
-//
 // Fixes the width of the page and removes the right-hand bar, also set comments to 100% width
-//
 addStyle("#navigation, #content, #footer {width: 80%; min-width: 900px;} .FN_feedbackview, .UFIView { width: 100%; }");
 
-//
 // Top Bar Positioning
-//
 var contentPosition = getPosition($('content'));
-addStyle(' #header { position:fixed !important; width:100% !important; z-index:12; margin-top:0; } '+
-'#content { padding-top:' + contentPosition[1] + 'px; }');
+// If the users have the "Show switch back to regular facebook"-link active, fix this!
+if ($$('optoutHeader')[0]) 
+    addStyle('.optoutHeader {position: fixed !important; width:100% !important; z-index:12;} #header {position:fixed !important; width:100% !important; z-index:12; margin-top: '+getPosition($('header'))[1]+'px;} #content {padding-top:' + contentPosition[1] + 'px;}');
+else
+    addStyle('#header {position:fixed !important; width:100% !important; z-index:12; margin-top:0;} #content {padding-top:' + contentPosition[1] + 'px;}');
 
 //
 // Viewing photos, set the comments to 100% width and check for browser-resize
 //
 function photoComments() {
 	var size = ($('contentWrapper').offsetWidth - 625 -80);
-    addStyle('.LPhotoListView .LSplitPage_Right, .LPhideoView .LSplitPage_Right {width: '+size+'px;} .LPhotoListView .LSplitPage_Content {width: 605px;} .LPhotoListView .UFIView, .LPhotoListView .LSplitPage_Right .LSplitPage_RightInner, .LPhideoView .UFIView {width: 100%}');
+    addStyle('.LPhotoListView .LSplitPage_Right, .LPhideoView .LSplitPage_Right {width: '+size+'px;} .LPhotoListView .LSplitPage_Content {width: 605px;} .LPhotoListView .UFIView, .LPhotoListView .LSplitPage_Right .LSplitPage_RightInner, .LPhideoView .UFIView {width: 100%} .LSplitPage_ContentWithNoRightColumn {width: 639px;}');
 }
 if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') ||
         document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane') || 

@@ -1,49 +1,127 @@
-// Copyright (c) 2009, Marcus Carlsson <carlsson.marcus@gmail.com>
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the <organization> nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY Marcus Carlsson ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
 // ==UserScript==
 // @name          Facebook Lite Spoon
 // @namespace     http://userscripts.org/scripts/show/57854
-// @description	  Removes the right-hand bar from Facebook Lite, expanding the content to 60% width. Removes Facebook | from the title and makes the header fixed at the top. Thumbnail previewer.
+// @description   Removes Ads. Full width. Removes Facebook | from the title and makes the header fixed at the top. Thumbnail previewer.
 // @include       http://lite.facebook.com/*
 // @include       https://lite.facebook.com/*
-// @author		  Marcus Carlsson
-// @version		  0.3.5
+// @author        Marcus Carlsson
+// @timestamp     1258660184612
+// @version       0.4
 // ==/UserScript==
+
+/* Copyright (c) 2009, Marcus Carlsson <carlsson.marcus@gmail.com>
+ All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the <organization> nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Marcus Carlsson ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/*
+
+CHANGELOG:
+
+0.4
+* Configuration page
+  - Set PreviewPosition, left, right or auto (at cursor). Default: right
+  - Automatic updates.
+* Automatic updates. Don't miss out ;)
+
+0.3.5
+* Updated the script to match the new changes on Facebook Lite
+* Added support for "Back to regular facebook"-bar
+* Comments width: 100% on album/single image pages
+
+
+TODO:
+!Configuration page.
+ - Width setting: default 80%
+Hotkeys.
+ * Home
+   - H : home
+   - W : Write
+   - P : profile
+   - I : inbox
+   - E : events
+   - N : notifications
+Add function to force update.
+*/
 
 (function () {
 
-//
+var version_timestamp = 1258660184612;
+
+
+var conf = {
+    'PreviewPosition': getValue('PreviewPosition', 'right')
+}
+
+// Set Value
+function setValue(key, value) {
+    GM_setValue(key, value);
+    conf[key] = value;
+}
+// Get value
+function getValue(key, value) {
+    return GM_getValue(key, value);
+}
+
+var opts = 'AutoUpdate';
+var boolopts = opts.split(',');
+for (i=0; i<boolopts.length; i++) {
+    bool = true;
+    if (boolopts[i].charAt(0) == '!') {
+        boolopts[i] = boolopts[i].replace('!', '');
+        bool = false;
+    }
+    conf[boolopts[i]] = getValue(boolopts[i], bool);
+}
+
+
 // Check if we're on the main page, then hide the ads
-//
 if ($$('LMuffinView', $$('LSplitPage_RightInner')[0])[0]) {
-	addStyle(".LSplitPage_Right {display: none;}");
+    addStyle(".LSplitPage_Right {display: none;}");
 }
 
 // Fixes the width of the page and removes the right-hand bar, also set comments to 100% width
 addStyle("#navigation, #content, #footer {width: 80%; min-width: 900px;} .FN_feedbackview, .UFIView { width: 100%; }");
+
+
+// Add styles for popup
+addStyle(
+    '.flsPopupWrap {background: #fff; display: none; color: #000; width: 800px; z-index: 667; position: fixed; top:0;left:0;right:0; padding: 10px; border: 4px solid #f99; margin: 20px auto 0;}'+
+    '.flsShadow {background: #000; display: none; z-index: 666; opacity: 0.5; position: fixed; top:0;bottom:0;left:0;right:0;}'+
+    '#flsClose {cursor: pointer;}'
+);
+
+
+// Create popup-container and shadow-box
+var popupWrap = document.createElement('div');
+popupWrap.id = 'flsPopupWrap';
+popupWrap.className = 'flsPopupWrap';
+document.body.appendChild(popupWrap);
+var shadowDiv = document.createElement('div');
+shadowDiv.id = 'flsShadow';
+shadowDiv.className = 'flsShadow';
+document.body.appendChild(shadowDiv);
 
 // Top Bar Positioning
 var contentPosition = getPosition($('content'));
@@ -53,16 +131,15 @@ if ($$('optoutHeader')[0])
 else
     addStyle('#header {position:fixed !important; width:100% !important; z-index:12; margin-top:0;} #content {padding-top:' + contentPosition[1] + 'px;}');
 
-//
+
 // Viewing photos, set the comments to 100% width and check for browser-resize
-//
 function photoComments() {
-	var size = ($('contentWrapper').offsetWidth - 625 -80);
+    var size = ($('contentWrapper').offsetWidth - 625 -80);
     addStyle('.LPhotoListView .LSplitPage_Right, .LPhideoView .LSplitPage_Right {width: '+size+'px;} .LPhotoListView .LSplitPage_Content {width: 605px;} .LPhotoListView .UFIView, .LPhotoListView .LSplitPage_Right .LSplitPage_RightInner, .LPhideoView .UFIView {width: 100%} .LSplitPage_ContentWithNoRightColumn {width: 639px;}');
 }
-if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') ||
-        document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane') || 
-        document.getElementsByTagName('body')[0].getAttribute('class').match('LPhideoView')) {
+if (document.body.getAttribute('class').match('LPhotoListView') ||
+        document.body.getAttribute('class').match('LProfilePhotoPane') || 
+        document.body.getAttribute('class').match('LPhideoView')) {
     photoComments();
     window.addEventListener('resize', photoComments, false);
 }
@@ -71,120 +148,207 @@ if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhoto
 // Creates a box where the original image is shown when hovering profile thumbnails
 //
 function showHover(e) {
-	if (!$('FLSpopup')) {
-		var FLSpopup = document.createElement('div');
-		FLSpopup.id = 'FLSpopup';
-		addStyle("#FLSpopup { background: #ffffff; position: fixed !important; top: 20px; right: 20px; z-index: 20; border: 1px solid #333333; padding: 5px; display: none; }");
-		document.body.appendChild(FLSpopup);
-	}
-	var image = document.createElement('img');
-    console.log(this);
+    var FLSpopup = $('FLSpopup');
+    if (!FLSpopup) {
+        FLSpopup = document.createElement('div');
+        FLSpopup.id = 'FLSpopup';
+        addStyle("#FLSpopup {background: #ffffff; position: fixed !important; z-index: 99; border: 1px solid #333333; padding: 5px; display: none;}");
+        document.body.appendChild(FLSpopup);
+    }
+    var image = document.createElement('img');
     if (this.tagName == 'I')
         image.src = this.style.backgroundImage.replace(/url\(([^)]+)\)/i, '$1').replace(/\/[aqst]([\d_]+)\.jpg/, "/n$1.jpg").replace(/\/([\d_]+)[aqst]\.jpg/, "/$1n.jpg");
     else
         image.src = this.src.replace(/\/[aqst]([\d_]+)\.jpg/, "/n$1.jpg").replace(/\/([\d_]+)[aqst]\.jpg/, "/$1n.jpg");
-	$('FLSpopup').innerHTML = '';
-	$('FLSpopup').appendChild(image);
-	$('FLSpopup').style.display = 'block';
+
+    FLSpopup.innerHTML = '';
+    FLSpopup.appendChild(image);
+    if (conf['PreviewPosition'] == 'auto') {
+        FLSpopup.style.removeProperty('right');
+        var intY = e.clientY 
+        if (window.innerHeight > intY + image.height) {
+            FLSpopup.style.top = intY + 5 + 'px';
+            FLSpopup.style.left = e.clientX + 5 + 'px';
+        }
+        else {
+            intY = window.innerHeight - image.height - 10 
+            FLSpopup.style.top = intY + 'px';
+            FLSpopup.style.left = e.clientX + 5 + 'px';
+        }
+    }
+    else if (conf['PreviewPosition'] == 'left') {
+        FLSpopup.style.removeProperty('right');
+        FLSpopup.style.top = '20px';
+        FLSpopup.style.left = '20px';
+    }
+    else {
+        FLSpopup.style.removeProperty('left');
+        FLSpopup.style.top = '20px';
+        FLSpopup.style.right = '20px';
+    }
+        
+    $('FLSpopup').style.display = 'block';
 }
 
 function hideHover() {
-	$('FLSpopup').style.display = '';
+    $('FLSpopup').style.display = '';
 }
 
 //
 // Add mouse-events
 //
 function mouseEvents() {
-	if (document.getElementsByTagName('body')[0].getAttribute('class').match('LHomeStreamView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfileView')) {
-		var profilephoto = $$('profilePhoto');
-		for (i in profilephoto) {
-			profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
-			profilephoto[i].childNodes[0].addEventListener('mouseout', hideHover, false);
-		}
-		// Add for attachments
-		var attachments = $$('attachmentMedia');
-		for (i in attachments) {
-			var nodes = attachments[i].childNodes;
-			for (n in nodes) {
-				nodes[n].childNodes[0].addEventListener('mouseover', showHover, false);
-				nodes[n].childNodes[0].addEventListener('mouseout', hideHover, false);
-			}
-		}			
-	}
+    if (document.getElementsByTagName('body')[0].getAttribute('class').match('LHomeStreamView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfileView')) {
+        var profilephoto = $$('profilePhoto');
+        for (i in profilephoto) {
+            profilephoto[i].childNodes[0].addEventListener('mouseover', showHover, false);
+            profilephoto[i].childNodes[0].addEventListener('mouseout', hideHover, false);
+        }
+        // Add for attachments
+        var attachments = $$('attachmentMedia');
+        for (i in attachments) {
+            var nodes = attachments[i].childNodes;
+            for (n in nodes) {
+                nodes[n].childNodes[0].addEventListener('mouseover', showHover, false);
+                nodes[n].childNodes[0].addEventListener('mouseout', hideHover, false);
+            }
+        }           
+    }
 
-	// Add for photogallery as well as setting width for comments to 100% and 50% of #content
-	if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane')) {
+    // Add for photogallery as well as setting width for comments to 100% and 50% of #content
+    if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane')) {
         var galleryimg = $$('LGridCropView')[0].getElementsByTagName('td');
-		for (i in galleryimg) {
-			var nodes = galleryimg[i].childNodes;
-			for (n in nodes) {
-				nodes[n].childNodes[0].addEventListener('mouseover', showHover, false);
-				nodes[n].childNodes[0].addEventListener('mouseout', hideHover, false);
-			}
-		}
-	}
+        for (i in galleryimg) {
+            var nodes = galleryimg[i].childNodes;
+            for (n in nodes) {
+                nodes[n].childNodes[0].addEventListener('mouseover', showHover, false);
+                nodes[n].childNodes[0].addEventListener('mouseout', hideHover, false);
+            }
+        }
+    }
 }
 mouseEvents();
 // Reload mouse events if the content change
 $('contentWrapper').addEventListener('DOMNodeInserted', mouseEvents, false);
 
-//
 // Remove Facebook from the title
-//
 var titleValue = document.title;
 document.title = titleValue.replace('Facebook | ', '');
 
-//
 // Get element by id
-//
 function $(id,root){return root ? root.getElementById(id) : document.getElementById(id);}
 
-//
 // Get element(s) by class name
-//
 function $$(className,root){
-	if (document.getElementsByClassName) {
-		return root ? root.getElementsByClassName(className) : document.getElementsByClassName(className);
-	} else {
-		var elms = $x('//*[contains(@class,"'+className+'")]',root);
-		var buffer = new Array();
-		for (var i=0; i<elms.snapshotLength; i++) { buffer.push(elms.snapshotItem(i)); }
-		return buffer;
-	}
+    if (document.getElementsByClassName) {
+        return root ? root.getElementsByClassName(className) : document.getElementsByClassName(className);
+    } else {
+        var elms = $x('//*[contains(@class,"'+className+'")]',root);
+        var buffer = new Array();
+        for (var i=0; i<elms.snapshotLength; i++) { buffer.push(elms.snapshotItem(i)); }
+        return buffer;
+    }
 }
 
-//
 // XPath
-//
 function $x(xpath,root){return document.evaluate(xpath,(root?root:document),null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);}
 
-//
 // Add style
-//
 function addStyle(css) {
-	if (typeof GM_addStyle !== 'undefined') { return GM_addStyle(css); }
-	else if (heads = document.getElementsByTagName('head')) {
-		var style = document.createElement('style');
-		try { style.innerHTML = css; }
-		catch(x) { style.innerText = css; }
-		style.type = 'text/css';
-		heads[0].appendChild(style);
-	}
+    if (typeof GM_addStyle !== 'undefined') { return GM_addStyle(css); }
+    else if (heads = document.getElementsByTagName('head')) {
+        var style = document.createElement('style');
+        try { style.innerHTML = css; }
+        catch(x) { style.innerText = css; }
+        style.type = 'text/css';
+        heads[0].appendChild(style);
+    }
 }
 
-//
 // Get an elements position
-//
 function getPosition(elm) {
-	var x=0;
-	var y=0;
-	while (elm != null) {
-		x += elm.offsetLeft;
-		y += elm.offsetTop;
-		elm = elm.offsetParent;
-	}
-	return Array(x,y);
+    var x=0;
+    var y=0;
+    while (elm != null) {
+        x += elm.offsetLeft;
+        y += elm.offsetTop;
+        elm = elm.offsetParent;
+    }
+    return Array(x,y);
+}
+
+// Open in tab
+function openInTab(url) {
+    if (typeof GM_openInTab !== 'undefined') { GM_openInTab(url); }
+    else { window.open(url); }
+}
+
+
+function xmlhttpRequest(params, callBack) {
+    if (typeof GM_xmlhttpRequest !== 'undefined') {
+        params['onload'] = callBack;
+        return GM_xmlhttpRequest(params);
+    }
+    return null;
+}
+
+// Show popup
+function showPopup(content) {
+    var popupWrap = $('flsPopupWrap');
+    var shadowDiv = $('flsShadow');
+    popupWrap.innerHTML = content;
+    popupWrap.style.display = 'block';
+    shadowDiv.style.display = 'block';
+}
+function hidePopup() {
+    $('flsPopupWrap').style.display = 'none';
+    $('flsShadow').style.display = 'none';
+}
+
+
+// Check for new updates - modified to work with this script (originally based on code by Jarett - http://userscripts.org/users/38602) (rewritten by Vaughan - http://userscripts.org/users/biff)
+var updateForced;
+function updateCheck(forced) {
+    if ((forced) || (parseInt(GM_getValue('LastUpdate', '0')) + 172800 <= (new Date().getTime()))) {
+        updateForced = forced;
+        try { 
+            xmlhttpRequest({method: "GET",url: "http://userscripts.org/scripts/source/57854.meta.js?" + new Date().getTime(),headers: {'Cache-Control': 'no-cache'}}, handleUpdateResponse); 
+        }
+        catch (err) { if (forced) { alert("An error occurred while checking for updates:\n" + err); } }
+    }
+}
+function handleUpdateResponse(resp) {
+    GM_setValue('LastUpdate', new Date().getTime()+'');
+    if (resp.responseText.match(/@timestamp\s+(\d+)/)[1] > version_timestamp) { 
+        if (confirm('There is a new version of Facebook Lite Spoon. Do you want to update?'))
+            openInTab('http://userscripts.org/scripts/source/57854.user.js');
+    }
+    else if (updateForced) { alert("No update is available for Facebook Lite Spoon."); }
+}
+if (conf['AutoUpdate']) updateCheck(false);
+
+
+// Register menu command
+GM_registerMenuCommand('Configure Facebook Lite Spoon', showMenuConf)
+function showMenuConf() {
+    showPopup('<h2>Facebook Lite Spoon configuration!</h2>'+
+           '<input type="checkbox" id="flscAutoUpdate" '+(conf['AutoUpdate'] ? 'checked' : '')+' /> Fetch new versions automatically<br />'+
+           '<select id="flscPreviewPosition"><option value="left"'+(conf['PreviewPosition'] == 'left' ? ' selected' : '')+'>Left</option><option value="auto"'+(conf['PreviewPosition'] == 'auto' ? ' selected' : '')+'>Auto</option><option value="right"'+(conf['PreviewPosition'] == 'right' ? ' selected' : '')+'>Right</option></select> Previewbox positioning<br />'+
+           '<br /><span id="flsClose">Close</span><br /><span style="font-size: 9px;">Updates are saved automatically.</span>'
+    );
+
+    // Look for changes to the script
+    for (var i=0; i<boolopts.length; i++) {
+        $('flsc'+boolopts[i]).addEventListener('click', function (e) {
+            setValue(e.target.id.replace('flsc', ''), e.target.checked);
+            conf[e.target.id.replace('flsc', '')] = e.target.checked;
+        }, false);
+    }
+    $('flscPreviewPosition').addEventListener('change', function (e) {
+        setValue(e.target.id.replace('flsc', ''), e.target.value);
+        conf[e.target.id.replace('flsc', '')] = e.target.value;
+    }, false);
+    $('flsClose').addEventListener('click', hidePopup, false);
 }
 
 }) ();

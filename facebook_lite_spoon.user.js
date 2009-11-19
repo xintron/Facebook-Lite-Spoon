@@ -59,7 +59,13 @@ addStyle(' #header { position:fixed !important; width:100% !important; z-index:1
 //
 function photoComments() {
 	var size = ($('contentWrapper').offsetWidth - 625 -80);
-    addStyle('.LPhotoListView .LSplitPage_Right {width: '+size+'px;} .LPhotoListView .LSplitPage_Content {width: 605px;} .LPhotoListView .UFIView, .LPhotoListView .LSplitPage_Right .LSplitPage_RightInner {width: 100%}');
+    addStyle('.LPhotoListView .LSplitPage_Right, .LPhideoView .LSplitPage_Right {width: '+size+'px;} .LPhotoListView .LSplitPage_Content {width: 605px;} .LPhotoListView .UFIView, .LPhotoListView .LSplitPage_Right .LSplitPage_RightInner, .LPhideoView .UFIView {width: 100%}');
+}
+if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') ||
+        document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane') || 
+        document.getElementsByTagName('body')[0].getAttribute('class').match('LPhideoView')) {
+    photoComments();
+    window.addEventListener('resize', photoComments, false);
 }
 
 //
@@ -110,8 +116,6 @@ function mouseEvents() {
 
 	// Add for photogallery as well as setting width for comments to 100% and 50% of #content
 	if (document.getElementsByTagName('body')[0].getAttribute('class').match('LPhotoListView') || document.getElementsByTagName('body')[0].getAttribute('class').match('LProfilePhotoPane')) {
-        photoComments();
-        window.addEventListener('resize', photoComments, false);
         var galleryimg = $$('LGridCropView')[0].getElementsByTagName('td');
 		for (i in galleryimg) {
 			var nodes = galleryimg[i].childNodes;

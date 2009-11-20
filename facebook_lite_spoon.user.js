@@ -5,8 +5,8 @@
 // @include       http://lite.facebook.com/*
 // @include       https://lite.facebook.com/*
 // @author        Marcus Carlsson
-// @timestamp     1258660184612
-// @version       0.4
+// @timestamp     1258706354201 
+// @version       0.4.2
 // ==/UserScript==
 
 /* Copyright (c) 2009, Marcus Carlsson <carlsson.marcus@gmail.com>
@@ -39,6 +39,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 CHANGELOG:
 
+0.4.2
+* Width option in configuration menu. Default: 80%
+* Force update check
+* Right padding fixed (.LSplitPage_content, thanks to @dmorrison for pointing that out)
+
+0.4.1
+* opt out header padding problem fixed
+
 0.4
 * Configuration page
   - Set PreviewPosition, left, right or auto (at cursor). Default: right
@@ -62,16 +70,15 @@ Hotkeys.
    - I : inbox
    - E : events
    - N : notifications
-Add function to force update.
 */
 
 (function () {
 
-var version_timestamp = 1258660184612;
-
+var version_timestamp = 1258706354201;
 
 var conf = {
-    'PreviewPosition': getValue('PreviewPosition', 'right')
+    'PreviewPosition': getValue('PreviewPosition', 'right'),
+    'WidthContent': getValue('WidthContent', '80')
 }
 
 // Set Value
@@ -102,7 +109,9 @@ if ($$('LMuffinView', $$('LSplitPage_RightInner')[0])[0]) {
 }
 
 // Fixes the width of the page and removes the right-hand bar, also set comments to 100% width
-addStyle("#navigation, #content, #footer {width: 80%; min-width: 900px;} .FN_feedbackview, .UFIView { width: 100%; }");
+addStyle('#navigation, #content, #footer {width: '+conf['WidthContent']+'%; min-width: 900px;} .FN_feedbackview, .UFIView { width: 100%; }'+
+        '.LSplitPage_Content {padding-right: 0}'
+);
 
 
 // Add styles for popup
@@ -127,7 +136,7 @@ document.body.appendChild(shadowDiv);
 var contentPosition = getPosition($('content'));
 // If the users have the "Show switch back to regular facebook"-link active, fix this!
 if ($$('optoutHeader')[0]) 
-    addStyle('.optoutHeader {position: fixed !important; width:100% !important; z-index:12;} #header {position:fixed !important; width:100% !important; z-index:12; margin-top: '+getPosition($('header'))[1]+'px;} #content {padding-top:' + contentPosition[1] + 'px;}');
+    addStyle('.optoutHeader {position: fixed !important; right: 0; left: 0; z-index:12; padding: 4px 10px;} #header {position:fixed !important; width:100% !important; z-index:12; margin-top: '+getPosition($('header'))[1]+'px;} #content {padding-top:' + contentPosition[1] + 'px;}');
 else
     addStyle('#header {position:fixed !important; width:100% !important; z-index:12; margin-top:0;} #content {padding-top:' + contentPosition[1] + 'px;}');
 
@@ -292,6 +301,16 @@ function xmlhttpRequest(params, callBack) {
     return null;
 }
 
+// Stop mouse events
+function stop(e) {
+    if (e.preventDefault)
+        e.preventDefault();
+    else
+        e.returnValue= false;
+    return false;
+}
+
+
 // Show popup
 function showPopup(content) {
     var popupWrap = $('flsPopupWrap');
@@ -332,9 +351,10 @@ if (conf['AutoUpdate']) updateCheck(false);
 GM_registerMenuCommand('Configure Facebook Lite Spoon', showMenuConf)
 function showMenuConf() {
     showPopup('<h2>Facebook Lite Spoon configuration!</h2>'+
-           '<input type="checkbox" id="flscAutoUpdate" '+(conf['AutoUpdate'] ? 'checked' : '')+' /> Fetch new versions automatically<br />'+
+           '<input type="checkbox" id="flscAutoUpdate" '+(conf['AutoUpdate'] ? 'checked' : '')+' /> Fetch new versions automatically (<a id="doUpdate" href="#">Check for updates now</a>)<br />'+
            '<select id="flscPreviewPosition"><option value="left"'+(conf['PreviewPosition'] == 'left' ? ' selected' : '')+'>Left</option><option value="auto"'+(conf['PreviewPosition'] == 'auto' ? ' selected' : '')+'>Auto</option><option value="right"'+(conf['PreviewPosition'] == 'right' ? ' selected' : '')+'>Right</option></select> Previewbox positioning<br />'+
-           '<br /><span id="flsClose">Close</span><br /><span style="font-size: 9px;">Updates are saved automatically.</span>'
+           '<select id="flscWidthContent"><option value="50"'+(conf['WidthContent'] == '50' ? ' selected' : '')+'>50%</option><option value="60"'+(conf['WidthContent'] == '60' ? ' selected' : '')+'>60%</option><option value="70"'+(conf['WidthContent'] == '70' ? ' selected' : '')+'>70%</option><option value="80"'+(conf['WidthContent'] == '80' ? ' selected' : '')+'>80%</option><option value="90"'+(conf['WidthContent'] == '90' ? ' selected' : '')+'>90%</option><option value="100"'+(conf['WidthContent'] == '100' ? ' selected' : '')+'>100%</option></select> Content width.<br />'+
+           '<br /><a id="flsClose" href="#">Close</a><br /><span style="font-size: 9px;">Updates are saved automatically.</span>'
     );
 
     // Look for changes to the script
@@ -348,7 +368,13 @@ function showMenuConf() {
         setValue(e.target.id.replace('flsc', ''), e.target.value);
         conf[e.target.id.replace('flsc', '')] = e.target.value;
     }, false);
-    $('flsClose').addEventListener('click', hidePopup, false);
+    $('flscWidthContent').addEventListener('change', function (e) {
+        setValue(e.target.id.replace('flsc', ''), e.target.value);
+        conf[e.target.id.replace('flsc', '')] = e.target.value;
+        $('navigation').style.width = $('content').style.width = $('footer').style.width = e.target.value+'%';
+    }, false);
+    $('doUpdate').addEventListener('click', function (e) { stop(e); updateCheck(true) }, false);
+    $('flsClose').addEventListener('click', function (e) { stop(e); hidePopup() }, false);
 }
 
 }) ();

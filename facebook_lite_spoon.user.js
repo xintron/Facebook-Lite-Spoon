@@ -5,8 +5,8 @@
 // @include       http://lite.facebook.com/*
 // @include       https://lite.facebook.com/*
 // @author        Marcus Carlsson
-// @timestamp     1258706354201 
-// @version       0.4.2
+// @timestamp     1258830212148
+// @version       0.4.5
 // ==/UserScript==
 
 /* Copyright (c) 2009, Marcus Carlsson <carlsson.marcus@gmail.com>
@@ -39,6 +39,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 CHANGELOG:
 
+0.4.5
+* Hotkeys
+  - H : home
+  - P : profile
+  - E : events
+  - I : inbox
+
 0.4.2
 * Width option in configuration menu. Default: 80%
 * Force update check
@@ -61,7 +68,7 @@ CHANGELOG:
 
 TODO:
 !Configuration page.
- - Width setting: default 80%
+ - Add a list of hotkeys.
 Hotkeys.
  * Home
    - H : home
@@ -74,7 +81,7 @@ Hotkeys.
 
 (function () {
 
-var version_timestamp = 1258706354201;
+var version_timestamp = 1258830212148;
 
 var conf = {
     'PreviewPosition': getValue('PreviewPosition', 'right'),
@@ -101,6 +108,27 @@ for (i=0; i<boolopts.length; i++) {
     }
     conf[boolopts[i]] = getValue(boolopts[i], bool);
 }
+
+
+// Hotkeys
+window.addEventListener('keydown', function(e) {
+    console.log(e.keyCode);
+    function toUrl(url) {
+        location.href = location.protocol + '//lite.facebook.com' + url;
+    }
+
+    if (e.target.type && e.target.type!='checkbox' && e.target.type!='select') {
+        return;
+    }
+    else if (e.shiftKey) {
+        switch (e.keyCode) {
+            case 72: toUrl('/'); break; // H
+            case 73: toUrl('/inbox/'); break; // I
+            case 80: location.href = $('navigation').getElementsByTagName('a')[1].href; break; // P
+            case 69: toUrl('/events/'); break; // E
+        }
+    }
+}, false);
 
 
 // Check if we're on the main page, then hide the ads

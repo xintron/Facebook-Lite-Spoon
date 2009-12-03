@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name          Facebook Lite Spoon
 // @namespace     http://userscripts.org/scripts/show/57854
-// @description   Removes Ads. Full width. Removes Facebook | from the title and makes the header fixed at the top. Thumbnail previewer.
+// @description   Removes Ads. Full width. Removes Facebook | from the title and makes the header fixed at the top. Thumbnail previewer. Hotkeys!
 // @include       http://lite.facebook.com/*
 // @include       https://lite.facebook.com/*
 // @author        Marcus Carlsson
-// @timestamp     1258830212148
-// @version       0.4.5
+// @timestamp     1259840088596
+// @version       0.4.6
 // ==/UserScript==
 
 /* Copyright (c) 2009, Marcus Carlsson <carlsson.marcus@gmail.com>
@@ -39,6 +39,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 CHANGELOG:
 
+0.4.6
+* Hotkeys
+  - W : Write
+  - N : notifications
+* Add a list of hotkeys on the configuration menu.
+
 0.4.5
 * Hotkeys
   - H : home
@@ -65,23 +71,11 @@ CHANGELOG:
 * Added support for "Back to regular facebook"-bar
 * Comments width: 100% on album/single image pages
 
-
-TODO:
-!Configuration page.
- - Add a list of hotkeys.
-Hotkeys.
- * Home
-   - H : home
-   - W : Write
-   - P : profile
-   - I : inbox
-   - E : events
-   - N : notifications
 */
 
 (function () {
 
-var version_timestamp = 1258830212148;
+var version_timestamp = 1259840088596;
 
 var conf = {
     'PreviewPosition': getValue('PreviewPosition', 'right'),
@@ -112,7 +106,6 @@ for (i=0; i<boolopts.length; i++) {
 
 // Hotkeys
 window.addEventListener('keydown', function(e) {
-    console.log(e.keyCode);
     function toUrl(url) {
         location.href = location.protocol + '//lite.facebook.com' + url;
     }
@@ -126,6 +119,13 @@ window.addEventListener('keydown', function(e) {
             case 73: toUrl('/inbox/'); break; // I
             case 80: location.href = $('navigation').getElementsByTagName('a')[1].href; break; // P
             case 69: toUrl('/events/'); break; // E
+            case 87: 
+                $$('FN_button-view')[0].style.display = 'none';
+                $$('FN_write-view')[0].style.display = 'block';
+                $$('FN_fancy-text-area')[0].focus();
+                stop(e);
+                break; // W
+            case 78: toUrl('/notifications/'); break; // N
         }
     }
 }, false);
@@ -381,7 +381,8 @@ function showMenuConf() {
     showPopup('<h2>Facebook Lite Spoon configuration!</h2>'+
            '<input type="checkbox" id="flscAutoUpdate" '+(conf['AutoUpdate'] ? 'checked' : '')+' /> Fetch new versions automatically (<a id="doUpdate" href="#">Check for updates now</a>)<br />'+
            '<select id="flscPreviewPosition"><option value="left"'+(conf['PreviewPosition'] == 'left' ? ' selected' : '')+'>Left</option><option value="auto"'+(conf['PreviewPosition'] == 'auto' ? ' selected' : '')+'>Auto</option><option value="right"'+(conf['PreviewPosition'] == 'right' ? ' selected' : '')+'>Right</option></select> Previewbox positioning<br />'+
-           '<select id="flscWidthContent"><option value="50"'+(conf['WidthContent'] == '50' ? ' selected' : '')+'>50%</option><option value="60"'+(conf['WidthContent'] == '60' ? ' selected' : '')+'>60%</option><option value="70"'+(conf['WidthContent'] == '70' ? ' selected' : '')+'>70%</option><option value="80"'+(conf['WidthContent'] == '80' ? ' selected' : '')+'>80%</option><option value="90"'+(conf['WidthContent'] == '90' ? ' selected' : '')+'>90%</option><option value="100"'+(conf['WidthContent'] == '100' ? ' selected' : '')+'>100%</option></select> Content width.<br />'+
+           '<select id="flscWidthContent"><option value="50"'+(conf['WidthContent'] == '50' ? ' selected' : '')+'>50%</option><option value="60"'+(conf['WidthContent'] == '60' ? ' selected' : '')+'>60%</option><option value="70"'+(conf['WidthContent'] == '70' ? ' selected' : '')+'>70%</option><option value="80"'+(conf['WidthContent'] == '80' ? ' selected' : '')+'>80%</option><option value="90"'+(conf['WidthContent'] == '90' ? ' selected' : '')+'>90%</option><option value="100"'+(conf['WidthContent'] == '100' ? ' selected' : '')+'>100%</option></select> Content width.<br /><br />'+
+           '<h3 style="margin: 0;">Hotkeys</h3><ul style="list-style-type: disc; margin: 0 0 0 25px;"><li>E - Events</li><li>H - Home</li><li>I - Inbox</li><li>N - Notifications</li><li>P - Profile</li><li>W - Write new status update</li></ul><span style="font-size: 9px;">All Home-keys requires shift+key to work, ie. shift+n for notifications.</span><br />'+
            '<br /><a id="flsClose" href="#">Close</a><br /><span style="font-size: 9px;">Updates are saved automatically.</span>'
     );
 

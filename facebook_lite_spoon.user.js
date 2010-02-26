@@ -146,7 +146,8 @@ addStyle('#navigation, #content, #footer {width: '+conf['WidthContent']+'%; min-
 addStyle(
     '.flsPopupWrap {background: #fff; display: none; color: #000; width: 800px; z-index: 667; position: fixed; top:0;left:0;right:0; padding: 10px; border: 4px solid #f99; margin: 20px auto 0;}'+
     '.flsShadow {background: #000; display: none; z-index: 666; opacity: 0.5; position: fixed; top:0;bottom:0;left:0;right:0;}'+
-    '#flsClose {cursor: pointer;}'
+    '#flsClose {cursor: pointer;}'+
+    '#flsNotifications {background-image: url("http://facebook.com/rsrc.php/z7VU4/hash/66ad7upf.png"); background-position: -78px -129px; width: 24px; height: 16px; padding: 15px 0 10px !important;}'
 );
 
 
@@ -405,5 +406,22 @@ function showMenuConf() {
     $('doUpdate').addEventListener('click', function (e) { stop(e); updateCheck(true) }, false);
     $('flsClose').addEventListener('click', function (e) { stop(e); hidePopup() }, false);
 }
+
+// Insert the notification-element and a link to notifications
+var notifications = document.createElement('a');
+notifications.id = 'flsNotifications';
+notifications.innerHTML = '<span>Notifications</span>';
+notifications.href = '/notifications/';
+$('navigationExtra').appendChild(notifications);
+
+JX = unsafeWindow.JX;
+JX.Stratcom.listen('channel-raw', null, function(event) {
+    var data = event.getData();
+    // We got new notifications :D
+    if (data.t == 'msg') {
+        notifications.style.backgroundColor = '#FF8080';
+        notifications.style.backgroundPosition = '-24px -63px';
+    }
+});
 
 }) ();
